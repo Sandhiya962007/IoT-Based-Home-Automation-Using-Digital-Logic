@@ -1,0 +1,98 @@
+#include <DHT.h>
+
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+
+#define PRESENCE_PIN 19
+
+#define OCCUPANCY_PIN 21
+
+#define LDR_PIN 34
+
+#define LIGHT_PIN 26
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup()
+{
+  Serial.begin(115200);
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  pinMode(PRESENCE_PIN, OUTPUT);
+
+  pinMode(OCCUPANCY_PIN, INPUT);
+
+  pinMode(LIGHT_PIN, OUTPUT);
+
+  dht.begin();
+}
+
+void loop()
+{
+  // Ultrasonic
+
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+
+  digitalWrite(TRIG_PIN, LOW);
+
+  long duration =
+      pulseIn(ECHO_PIN, HIGH);
+
+  float distance =
+      duration * 0.034 / 2;
+
+  if(distance < 200)
+      digitalWrite(PRESENCE_PIN, HIGH);
+  else
+      digitalWrite(PRESENCE_PIN, LOW);
+
+  // Occupancy from D Flip-Flop
+
+  bool occupancy =
+      digitalRead(OCCUPANCY_PIN);
+
+  // LDR
+
+  int ldrValue =
+      analogRead(LDR_PIN);
+
+  bool dark =
+      (ldrValue > 2500);
+
+  // Light Control
+
+  if(occupancy && dark)
+      digitalWrite(LIGHT_PIN, HIGH);
+  else
+      digitalWrite(LIGHT_PIN, LOW);
+
+  // Temperature Monitoring
+
+  float temp =
+      dht.readTemperature();
+
+  Serial.println("-----------");
+
+  Serial.print("Ultrasonic Distance: ");
+  Serial.println(distance);
+
+  Serial.print("Occupancy: ");
+  Serial.println(occupancy);
+
+  Serial.print("LDR: ");
+  Serial.println(ldrValue);
+
+  Serial.print("Temperature: ");
+  Serial.println(temp);
+
+  delay(1000);
+}
